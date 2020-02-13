@@ -44,5 +44,6 @@ db.cricketers.find({"trophies.0": "T20 World Cup"}).pretty()
 db.cricketers.find({"trophies": "T20 World Cup"}, {name:1, _id:0}).pretty()
 
 //update add a field to document
+//$set - replaces or adds the field.
 db.cricketers.updateOne({_id: 1}, {$set: {awards: {name: "Bharat Ratna", year: 2020}}})
 db.cricketers.updateOne({_id: 1}, {$set: {trophies: ["World Cup", "Asia Cup"]}})
