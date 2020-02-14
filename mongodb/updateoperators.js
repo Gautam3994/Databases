@@ -57,4 +57,35 @@ db.posts.find( {}, { comments: { $slice: [ 20, 10 ] } } )
 //$position is used to specify at what position we must add the value can be used only with $push
 db.cricketers.updateOne({_id: 8}, {$push: {trophies: {$each: [], $position: 0}}}) // 0 start --- any number = middle, negativ to count from last
 
+//$sort sorts the array elements.IT IS ONLY AVAILABLE FOR $push and it must appear with $each(which can be null)
+//documents
+db.cricketers.updateOne({_id: 9}, {$push: {trophies: {$each: [{id: 1, score: 1}, {id: 2, score: 2}, {id: 3, score: 3}], $sort: {score: 1}}}}, {upsert: true})
+db.cricketers.updateOne({_id: 9}, {$push: {trophies: {$each: [], $sort: {score: -1}}}})
+//non -document values
+db.cricketers.updateOne({_id: 9}, {$push: {scores: {$each: [], $sort: 1}}})
+
+//combining sort and slice
+db.cricketers.updateOne({_id: 9}, {$push: {scores: {$each: [], $sort: 1, $slice: 2}}})
+
+
+///$pop removes the first or the last element of a array.
+db.cricketers.updateOne({_id: 9}, {$pop: {scores: 1}}) //-1 first element
+
+//$pull removes values from exsisting if it matches the given values.
+db.cricketers.updateMany({}, {$pull: {trophies: "Super Series"}})
+
+//matches a condition
+db.cricketers.updateMany({}, {$pull: {scores: {$gte: 0}}})
+
+//remove from array of documents.
+db.cricketers.updateMany({}, {$pull: {trophies: {score: 1}}})
+
+//$pullAll requires an exact match
+db.cricketers.updateMany({}, {$pullAll: {score: [0, 5]}})
+
+//$ (postion operator) to update element in array.
+//cannot be used with nested array, upserts. If used with unset it sets the value to null so rather use pull
+// if the existing value matches the value we specify it will updated.
+//this only works on the first match.
+db.students.updateOne({grades: 92}, {$set: {"grades.$": 100}}) //92 value in table will changed to 100
 

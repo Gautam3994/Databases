@@ -2,6 +2,8 @@
 // to remove a field 
 // using normal method
 db.customers.update({_id: 2}, {$unset: {tournament: ""}})
+//to remove specific element in an array.use pull instead
+db.cricketers.updateOne({_id: 1}, {$unset: {"trophies.2": ""}})
 // using aggregation
 db.customers.aggregate([{ $unset: "tournament"}])
 //remove embedded field
