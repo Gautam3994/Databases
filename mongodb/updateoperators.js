@@ -87,5 +87,62 @@ db.cricketers.updateMany({}, {$pullAll: {score: [0, 5]}})
 //cannot be used with nested array, upserts. If used with unset it sets the value to null so rather use pull
 // if the existing value matches the value we specify it will updated.
 //this only works on the first match.
+//operators like $ne, $not, $nin cannot be used with this unless using $elemMatch.
 db.students.updateOne({grades: 92}, {$set: {"grades.$": 100}}) //92 value in table will changed to 100
 
+//update document in an array
+db.students.updateOne({"grades.grade": 85}, { $set: {"grades.$.mean": 90}})
+//remem it look for the first grade where value is 85.
+
+//update embedded documents using multiple field matches. it only updates the first embedded document not all
+db.students.updateOne({grades: {$elemMatch: {grade: {$lte: 90}, mean: {$gt: 80}}}}, { $set: {"grades.$.std": 90}})
+
+//$[] - this modifies all the elements in the array.
+// can be used with nested arrays as well.
+db.students.updateOne({grades: {$elemMatch: {grade: {$lte: 90}, mean: {$gt: 80}}}}, { $set: {"grades.$[].std": 90}})
+
+//if upsert done using $[] 
+// the field must be an array like below examples if it is null or other value it will cause error.
+db.collection.update(
+    { myArray: [ 5, 8 ] },
+    { $set: { "myArray.$[]": 10 } },
+    { upsert: true }
+ )
+
+//to update all element you must use multi
+ db.students.update(
+    { _id: {$in: [1,2,3]}},
+    { $inc: { "grades.$[]": 10 } },
+    {multi: true}
+ )
+
+ //to update all documents in an array.
+ db.students.update(
+     {_id: 4},
+     {$inc: {"grades.$[].std": 2}},
+     {multi: true}
+ )
+
+ //$[identifier] - identfier must be in lower case and contain alphanumeric values
+ //if upsert done using $[identifier] 
+// the field must be an array like below examples if it is null or other value it will cause error.
+db.collection.update(
+    { myArray: [ 0, 1 ] },
+    { $set: { "myArray.$[element]": 2 } },
+    { arrayFilters: [ { element: 0 } ],
+      upsert: true }
+ )
+
+
+//Update all elements that match
+db.students1.updateMany(
+    {_id: {$in: [1,2,3]}},
+    {$inc: {"grades.$[element]": 2}},
+    { 
+        multi: true,
+        arrayFilters: [{ "element": {$lt: 100}}]
+    }
+)
+
+//update all documents that match the filter condition
+db.students2.updateMany({}, {$set: {"grades.$[elem].mean": 100}}, {multi: true, arrayFilters: [{"elem.grade": {$gte: 85}}]})
