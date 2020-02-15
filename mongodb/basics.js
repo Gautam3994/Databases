@@ -2,6 +2,8 @@
 // to remove a field 
 // using normal method
 db.customers.update({_id: 2}, {$unset: {tournament: ""}})
+//another example
+db.movieDetails.updateMany({poster: null}, {$unset: {poster: ""}}) 
 //to remove specific element in an array.use pull instead
 db.cricketers.updateOne({_id: 1}, {$unset: {"trophies.2": ""}})
 // using aggregation
@@ -37,6 +39,8 @@ db.cricketers.find({trophies: ["World Cup", "T20 World Cup"]}).pretty()
 
 // to query if a particular value exists anywhere in the array
 db.cricketers.find({trophies: "T20 World Cup"}).pretty()
+//document in an array
+db.students2.find({"grades.grade": 90}) 
 
 // to query if a particular value exists at a particular position.
 db.cricketers.find({"trophies.0": "T20 World Cup"}).pretty()
@@ -49,3 +53,18 @@ db.cricketers.find({"trophies": "T20 World Cup"}, {name:1, _id:0}).pretty()
 //$set - replaces or adds the field.
 db.cricketers.updateOne({_id: 1}, {$set: {awards: {name: "Bharat Ratna", year: 2020}}})
 db.cricketers.updateOne({_id: 1}, {$set: {trophies: ["World Cup", "Asia Cup"]}})
+
+//replaceOne
+//replace cannot contain update operators.
+//below is appl perpective.
+let filter = {title: "House, M.D., Season Four: New Beginnings"}
+let doc = db.movieDetails.find(filter);
+doc.poster = "poster"
+doc.genres
+doc.genres.push("TV Series")
+db.movieDetails.replaceOne(filter, doc);
+
+//deleteOne
+db.students1.deleteOne({grades: 100}) 
+db.students2.deleteOne({"grades.grade": 90}) 
+//deleteMany

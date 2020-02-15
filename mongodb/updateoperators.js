@@ -35,7 +35,7 @@ db.cricketers.updateOne({_id: 1}, {$addToSet: {trophies: "CB Series"}})
 //but you can do multiple updates
 db.cricketers.updateOne({_id: 1}, {$addToSet: {trophies: {$each: ["Asia Cup", "Super Series"]}}})
 
-//$push appends the value to the array and doesnt care if it already exists or not
+//$push appends the value to the array and doesnt care if it already exists or not if not exist it creates one
 db.cricketers.updateOne({_id: 8}, {$push: {trophies: "World Cup 1999"}}, {upsert: true})
 //nested array
 db.cricketers.updateOne({_id: 8}, {$push: {trophies: ["World Cup 1999"]}}, {upsert: true})
@@ -137,12 +137,39 @@ db.collection.update(
 //Update all elements that match
 db.students1.updateMany(
     {_id: {$in: [1,2,3]}},
-    {$inc: {"grades.$[element]": 2}},
+    {$inc: {"grades.$[element]": 2}}, //element refers to any element in an array
     { 
         multi: true,
-        arrayFilters: [{ "element": {$lt: 100}}]
+        arrayFilters: [{ "element": {$lt: 100}}] // setting filter for the elements to choose.
     }
 )
 
 //update all documents that match the filter condition
-db.students2.updateMany({}, {$set: {"grades.$[elem].mean": 100}}, {multi: true, arrayFilters: [{"elem.grade": {$gte: 85}}]})
+db.students2.updateMany(
+    {},
+    {$set: {"grades.$[element].mean": 101}},
+    {
+        multi: true,
+        arrayFilters: [{"element.grade": {$gte: 85}}]
+    }
+)
+
+//multiple condition
+db.students2.updateMany(
+    {},
+    {$set: {"grades.$[element].mean": 101}},
+    {
+        multi: true,
+        arrayFilters: [{"element.grade": {$gte: 85}, "element.std": {$eq: 6}}]
+    }
+)
+
+//for nested arrays
+db.students3.updateMany(
+    {},
+    {$inc: {"grades.$[typelem].questions.$[scorelem]": 2}}, //typelem is element in grade array and scorelem is elements in questions array.
+    {
+        multi: true,
+        arrayFilters: [{"typelem.type": "quiz"}, {"scorelem": {$gte: 8}}]
+    }
+)
