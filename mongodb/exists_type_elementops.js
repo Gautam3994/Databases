@@ -5,3 +5,4 @@ db.movies.find({"tomato.consensus": null, tomato: {$exists: true}}) // to overco
 //type
 db.movies.find({viewerRating: {$type: "int"}}) //there are many other types
 db.data.find({atmosphericPressureChange: {$exists: false}}).count()
+
