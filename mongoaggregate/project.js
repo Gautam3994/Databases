@@ -148,9 +148,9 @@ db.movies.aggregate(
     [
         {
         $match: {
-            writers: {
-                        $elemMatch: {$exists: true}
-                        }
+            writers: {$elemMatch: {$exists: true}},
+            directors: {$elemMatch: {$exists: true}},
+            cast: {$elemMatch: {$exists: true}}
                 }
         },
         {
@@ -174,11 +174,19 @@ db.movies.aggregate(
         }, 
         {
             $project: {
-                    writers: 1
+                labor_of_love: {
+                    $gt: [
+                   {$size: {$setIntersection: ["$writers", "$directors", "$cast"]}},
+                    0
+                    ]
+                }
             }
+        },
+        {
+            $match: {"labor_of_love": true}
         }
     ]
-).pretty()
+).itcount()
 // $cond: { if: { $gte: [ "$qty", 250 ] }, then: 30, else: 20 }
 {
     $project: {
