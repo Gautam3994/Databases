@@ -176,7 +176,7 @@ db.movies.aggregate(
             $project: {
                 labor_of_love: {
                     $gt: [
-                   {$size: {$setIntersection: ["$writers", "$directors", "$cast"]}},
+                   {$size: {$setIntersection: ["$writers", "$directors", "$cast"]}}, //returns an array of all three matching values.
                     0
                     ]
                 }
