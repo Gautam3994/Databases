@@ -52,3 +52,139 @@ db.solarSystem.aggregate(
             } 
         }
     ])
+
+//WORKOUT
+var pipeline = [
+    {
+        $match: {
+            "imdb.rating": {$gte: 7},
+            genres: {$nin: ["Crime", "Horror"]},
+            $or: [{rated: "PG"}, {rated: "G"}],
+            $and: [{languages: "English"}, {languages: "Japanese"}]
+        }
+    },
+    {
+        $project: {
+            _id: 0,
+            title: 1,
+            rated: 1
+        }
+    }
+]
+db.movies.aggregate(pipeline).itcount()
+load('validateLab1.js')
+validateLab1(pipeline)
+
+//WORKOUT-2
+db.movies.aggregate(
+    [
+        {
+            $match: {
+                title: {
+                    $type: "string" //check if the type is string
+                }
+            }
+        },
+        {
+            $project: {
+                title: {
+                    $split: ["$title", " "] // ["field to split", "delimiter"]
+                }
+            }
+        }, 
+        {
+            $match: {
+                title: {
+                    $size: 1 //if size is 1 the resulting document would be displayed
+                }
+            }
+        }
+    ]
+).itcount()
+
+//WORKOUT
+//check if the writers is an array field and if it exists.
+//USE METHOD 2
+//METHOD - 1 
+db.movies.aggregate(
+    [
+        {
+            $match: {
+                    $and: [
+                        {
+                            writers: {
+                            $exists: true
+                        }},
+                        {
+                            writers: {
+                                $type: "array"
+                            }
+                        }
+                    ]
+            }
+        }
+    ]
+).itcount()
+//RESULT - 41572
+//METHOD - 2
+db.movies.aggregate(
+    [
+        {
+        $match: {
+            writers: {
+                        $elemMatch: {$exists: true}
+                        }
+                }
+        }
+    ]
+).itcount()
+//RESULT - 41500
+//some times an array value can appear in multiple places.
+//and their names may have slightly different values.
+//"writers" : [ "Vincenzo Cerami (story)", "Roberto Benigni (story)" ]
+//vs Vincezno Cerami in cast
+// this results in undesired resuts when comparing so we use $map
+db.movies.aggregate(
+    [
+        {
+        $match: {
+            writers: {
+                        $elemMatch: {$exists: true}
+                        }
+                }
+        },
+        {
+        $project: {
+            writers: {
+                $map: {
+                    input: "$writers",
+                    as: "writer", 
+                    in: {
+                        $arrayElemAt: [
+                            {$split: ["$$writer", " ("]},
+                            0
+                        ]            
+                    }
+                }
+            },
+            directors: 1,
+            cast: 1, 
+            _id: 0
+        }
+        }, 
+        {
+            $project: {
+                    writers: 1
+            }
+        }
+    ]
+).pretty()
+// $cond: { if: { $gte: [ "$qty", 250 ] }, then: 30, else: 20 }
+{
+    $project: {
+        "in cast": {
+            $in: ["writers.$[]", "$cast"]
+        }
+    }
+}
+
