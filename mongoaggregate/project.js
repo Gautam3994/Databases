@@ -188,11 +188,5 @@ db.movies.aggregate(
     ]
 ).itcount()
 // $cond: { if: { $gte: [ "$qty", 250 ] }, then: 30, else: 20 }
-{
-    $project: {
-        "in cast": {
-            $in: ["writers.$[]", "$cast"]
-        }
-    }
-}
+
 
