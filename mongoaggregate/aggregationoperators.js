@@ -116,3 +116,6 @@ db.users.aggregate([
       { $project: { item: 1, total: { $add: [ "$price", "$fee" ] } } } //$add: [1, 2] numberss to add in expressions
     ]
  )
+
+ //SETINTERSECTION
+ 
