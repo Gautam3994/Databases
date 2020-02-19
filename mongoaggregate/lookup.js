@@ -95,4 +95,94 @@ db.air_routes.aggregate([
     //   $sort: { count: -1 }
     // }
   ]).pretty()
+
   
+  //To perform uncorrelated subqueries between two collections as well as allow other join conditions besides a single equality match, the $lookup stage has the following syntax:
+//   {
+//     $lookup:
+//       {
+//         from: <collection to join>,
+//         let: { <var_1>: <expression>, …, <var_n>: <expression> }, -- inner pipeline cannot access the fields so we assign them to variables("$$<variable>") first.
+//         pipeline: [ <pipeline to execute on the collection to join> ], --we must $expr in match everything works the same as in normal pipeline
+//         as: <output array field>
+//       }
+//  }
+
+// db.orders.insert([
+//     { "_id" : 1, "item" : "almonds", "price" : 12, "ordered" : 2 },
+//     { "_id" : 2, "item" : "pecans", "price" : 20, "ordered" : 1 },
+//     { "_id" : 3, "item" : "cookies", "price" : 10, "ordered" : 60 }
+//   ])
+
+//   db.warehouses.insert([
+//     { "_id" : 1, "stock_item" : "almonds", warehouse: "A", "instock" : 120 },
+//     { "_id" : 2, "stock_item" : "pecans", warehouse: "A", "instock" : 80 },
+//     { "_id" : 3, "stock_item" : "almonds", warehouse: "B", "instock" : 60 },
+//     { "_id" : 4, "stock_item" : "cookies", warehouse: "B", "instock" : 40 },
+//     { "_id" : 5, "stock_item" : "cookies", warehouse: "A", "instock" : 80 }
+//   ])
+
+//mutiple condition join
+
+db.orders.aggregate(
+    [
+        {
+            $lookup: {
+                from: "warehouses",
+                let: {order_item: "$item", quantity: "$ordered"},
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: {
+                                $and: [
+                                    {$eq: ["$$order_item", "$stock_item"]},
+                                    {$gte: ["$instock", "$$quantity"]}
+                                ]
+                            }
+                        }
+                    }
+                ],
+                as: "stockdata"
+            }
+        }
+    ]
+)
+// BELOW IS EQUIVALENT SQL
+
+// SELECT *, stockdata
+// FROM orders
+// WHERE stockdata IN (SELECT warehouse, instock
+//                     FROM warehouses
+//                     WHERE stock_item= orders.item
+//                     AND instock >= orders.ordered );
+  
+//uncorrelated subquery(no relation between inner query and outer query) .
+//simply adding new array from another collection
+
+// db.absences.insert([
+//     { "_id" : 1, "student" : "Ann Aardvark", sickdays: [ new Date ("2018-05-01"),new Date ("2018-08-23") ] },
+//     { "_id" : 2, "student" : "Zoe Zebra", sickdays: [ new Date ("2018-02-01"),new Date ("2018-05-23") ] },
+//  ])
+
+//db.holidays.insert([
+//     { "_id" : 1, year: 2018, name: "New Years", date: new Date("2018-01-01") },
+//     { "_id" : 2, year: 2018, name: "Pi Day", date: new Date("2018-03-14") },
+//     { "_id" : 3, year: 2018, name: "Ice Cream Day", date: new Date("2018-07-15") },
+//     { "_id" : 4, year: 2017, name: "New Years", date: new Date("2017-01-01") },
+//     { "_id" : 5, year: 2017, name: "Ice Cream Day", date: new Date("2017-07-16") }
+//  ]) 
+
+db.absences.aggregate([
+    {
+       $lookup:
+          {
+            from: "holidays",
+            pipeline: [
+               { $match: { year: 2018 } },
+               { $project: { _id: 0, date: { name: "$name", date: "$date" } } },
+               { $replaceRoot: { newRoot: "$date" } } //promoting a document field as root document
+            ],
+            as: "holidays"
+          }
+     }
+ ])

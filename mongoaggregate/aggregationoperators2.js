@@ -36,8 +36,9 @@ db.collection.insertMany([
 //mergeObjects combine multiple documents into single document
 
 db.collection.aggregate([
-    {$replaceRoot: {newRoot: {$mergeObjects: [{_id: "$_id", first: "", last: ""}, "$name"]}}}
+    {$replaceRoot: {newRoot: {$mergeObjects: [{_id: "$_id", first: "", last: ""}, "$name"]}}} //mergeObject in detail below
 ])
+
 
 //we could also use a match condition to avoid this error
 db.collection.aggregate([
@@ -90,3 +91,21 @@ db.contacts.insert([
          }
      }}
  ])
+
+ //mergeObject
+ db.orders.aggregate([
+    {
+       $lookup: {
+          from: "items",
+          localField: "item",    // field in the orders collection
+          foreignField: "item",  // field in the items collection
+          as: "fromItems"
+       }
+    },
+    {
+       $replaceRoot: { newRoot: { $mergeObjects: [ { $arrayElemAt: [ "$fromItems", 0 ] }, "$$ROOT" ] } } //merging Root document with the newly formed array
+    },
+    { $project: { fromItems: 0 } }
+ ])
+
+ 
