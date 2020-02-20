@@ -1,3 +1,4 @@
+
 db.air_alliances.aggregate([
     {
         $lookup: {
@@ -6,49 +7,38 @@ db.air_alliances.aggregate([
             foreignField: "airline.name",
             as: "airlines"
         }
+    }, 
+    {
+        $unwind: "$airlines" //whenever there is a long array consider using $unwind
     },
     {
-        $project: {
-            "airlines.airplane": 1,
-            "airlines.airline.name": 1,
-            name: 1
+        $match: {
+            $or: [
+                {"airlines.airplane":  "747"},
+                {"airlines.airplane":  "380"}
+            ]
         }
     },
     // {
-    //     $match: {
-    //         // "airlines.airplane": {$regex: /747/}
-    //         airlines: {$elemMatch: {airplane: {$regex: /747/}}}
+    //     $project: {
+    //         _id: 0,
+    //         name: 1,
+    //         "airlines.airline.name": 1,
+    //         "airlines.airplane": 1
     //     }
     // },
     {
         $group: {
-            _id: "$airlines.airplane"
+            _id: {
+                airplane: "$airlines.airplane",
+                name: "$name"
+            },
+            count: {
+                $sum: 1
+            }
         }
-    },
-    // {
-    //     $limit: 1
-    // }
+    }
+
 ], {
     allowDiskUse: true
 }).pretty()
-
-//
-db.air_alliances.aggregate(
-    [
-        {
-            $lookup: {
-                from: "air_airlines",
-                localField: "airlines",
-                foreignField: "name",
-                as: "airlines" // this will overwrite existing field
-            }
-        },
-        {
-            $match: {
-                airlines: {base: "LVI"}
-            }
-        }
-    ]
-).pretty()
-
-//         airlines: {$elemMatch: {airplane: {$regex: /747/}}}
