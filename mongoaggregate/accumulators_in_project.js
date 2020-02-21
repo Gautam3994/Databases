@@ -25,7 +25,7 @@ db.icecream_data.aggregate(
                         in: {
                             $cond: [
                                 {$gt: ["$$this.avg_high_tmp", "$$value"]}, //value refers to InitialValue for first time
-                                //after the result of first element.
+                                //after that the result of first element.
                                 "$$this.avg_high_tmp", //refers to particular element in the array.
                                 "$$value"
                             ]
